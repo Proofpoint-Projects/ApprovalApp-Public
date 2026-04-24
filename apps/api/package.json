@@ -1,0 +1,50 @@
+{
+  "name": "@portal/api",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "nest build",
+    "dev": "nest start --watch",
+    "start": "node dist/main.js",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate deploy",
+    "prisma:seed": "ts-node prisma/seed.ts"
+  },
+  "dependencies": {
+    "@nestjs/common": "^11.0.1",
+    "@nestjs/config": "^4.0.2",
+    "@nestjs/core": "^11.0.1",
+    "@nestjs/passport": "^11.0.5",
+    "@nestjs/platform-express": "^11.0.1",
+    "@node-saml/passport-saml": "^5.1.0",
+    "@prisma/client": "^6.6.0",
+    "axios": "^1.9.0",
+    "bullmq": "^5.46.1",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.1",
+    "connect-pg-simple": "^10.0.0",
+    "cookie-parser": "^1.4.7",
+    "express-session": "^1.18.1",
+    "helmet": "^8.1.0",
+    "ioredis": "^5.4.2",
+    "passport": "^0.7.0",
+    "pg": "^8.14.1",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.1",
+    "express": "^4.21.2"
+  },
+  "devDependencies": {
+    "@nestjs/cli": "^11.0.0",
+    "@types/cookie-parser": "^1.4.8",
+    "@types/express-session": "^1.18.1",
+    "@types/node": "^22.14.1",
+    "prisma": "6.19.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3",
+    "@types/connect-pg-simple": "^7.0.3",
+    "@types/express": "^4.17.21",
+    "@types/passport": "^1.0.17"
+  }
+}

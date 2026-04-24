@@ -1,0 +1,16 @@
+services:
+  nginx:
+    ports:
+      - "8443:8443"
+
+  web:
+    ports: []
+
+  api:
+    ports: []
+
+  postgres:
+    ports: []
+
+  redis:
+    ports: []

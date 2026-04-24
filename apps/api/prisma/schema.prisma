@@ -1,0 +1,253 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  APPROVER
+  ADMIN
+}
+
+enum ApprovalSource {
+  EMAIL_QUARANTINE
+  ENDPOINT_ITM
+  DLP
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  DENIED
+  EXPIRED
+  PROCESSING
+  ERROR
+}
+
+enum ActionType {
+  APPROVE
+  DENY
+  BULK_APPROVE
+  LOGIN
+  LOGOUT
+  PREVIEW
+  TOKEN_CREATE
+  TOKEN_ROTATE
+  TOKEN_DISABLE
+  TOKEN_DELETE
+  GRANT_APPLY
+  GRANT_REMOVE
+  AUTO_REMOVE
+}
+
+enum EndpointApprovalGrantStatus {
+  ACTIVE
+  REMOVED
+  FAILED
+}
+
+enum GroupGrantStatus {
+  PENDING_APPLY
+  ACTIVE
+  PENDING_REVOKE
+  REVOKED
+  FAILED
+}
+
+enum SecretProvider {
+  PROOFPOINT
+}
+
+enum SecretStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum GroupProvider {
+  ENTRA
+  AD_BRIDGE
+}
+
+model User {
+  id           String           @id @default(cuid())
+  email        String           @unique
+  displayName  String
+  externalId   String?          @unique
+  role         UserRole         @default(APPROVER)
+  groupsJson   Json?
+  lastLoginAt  DateTime?
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  approvalItems ApprovalItem[]  @relation("ApproverUser")
+  approverQuarantineScope ApproverQuarantineScope?
+  approvalActions ApprovalAction[]
+  auditLogs    AuditLog[]
+  createdSecrets IntegrationSecret[] @relation("SecretCreatedBy")
+  updatedSecrets IntegrationSecret[] @relation("SecretUpdatedBy")
+}
+
+model ApprovalItem {
+  id                  String           @id @default(cuid())
+  source              ApprovalSource
+  status              ApprovalStatus   @default(PENDING)
+  requesterEmail      String
+  requesterName       String?
+  requesterExternalId String?
+  deviceHostname      String?
+  policyName          String
+  policyReason        String
+  messageSubject      String?
+  messageSender       String?
+  previewJson         Json?
+  payloadJson         Json
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+  decidedAt           DateTime?
+  approverId          String?
+  approver            User?            @relation("ApproverUser", fields: [approverId], references: [id])
+  actions             ApprovalAction[]
+  groupGrant          GroupGrant?
+  endpointGrant       EndpointApprovalGrant?
+  externalRef String?
+}
+
+model EndpointApprovalGrant {
+  id              String                      @id @default(cuid())
+  approvalItemId  String                      @unique
+  approvalItem    ApprovalItem                @relation(fields: [approvalItemId], references: [id])
+  ruleId          String
+  predicateId     String?
+  username        String
+  controlUsername String
+  durationHours   Int
+  justification   String?
+  approvedById    String?
+  expiresAt       DateTime
+  removeAfterAt   DateTime
+  removedAt       DateTime?
+  status          EndpointApprovalGrantStatus @default(ACTIVE)
+  lastError       String?
+  metadataJson    Json?
+  createdAt       DateTime                    @default(now())
+  updatedAt       DateTime                    @updatedAt
+}
+
+model ApprovalAction {
+  id              String      @id @default(cuid())
+  approvalItemId  String
+  approvalItem    ApprovalItem @relation(fields: [approvalItemId], references: [id])
+  actorUserId     String
+  actorUser       User        @relation(fields: [actorUserId], references: [id])
+  action          ActionType
+  comment         String?
+  metadataJson    Json?
+  createdAt       DateTime    @default(now())
+}
+
+model WebhookEvent {
+  id               String   @id @default(cuid())
+  eventId          String   @unique
+  source           String
+  rawPayload       Json
+  normalizedPayload Json?
+  signatureValid   Boolean  @default(false)
+  status           String
+  receivedAt       DateTime @default(now())
+  processedAt      DateTime?
+}
+
+model GroupGrant {
+  id              String            @id @default(cuid())
+  approvalItemId  String            @unique
+  approvalItem    ApprovalItem      @relation(fields: [approvalItemId], references: [id])
+  provider        GroupProvider
+  groupId         String?
+  groupName       String
+  userExternalId  String?
+  userEmail       String
+  grantedById     String?
+  expiresAt       DateTime
+  appliedAt       DateTime?
+  removedAt       DateTime?
+  status          GroupGrantStatus  @default(PENDING_APPLY)
+  lastError       String?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+}
+
+model IntegrationSecret {
+  id               String         @id @default(cuid())
+  provider         SecretProvider
+  integrationKey   String         @unique
+  displayName      String
+  baseUrl          String
+  tokenCiphertext  String
+  tokenIv          String
+  tokenAuthTag     String
+  tokenLast4       String
+  fingerprintSha256 String
+  keyVersion       String
+  status           SecretStatus   @default(ACTIVE)
+  enabled          Boolean        @default(true)
+  notes            String?
+  createdById      String?
+  updatedById      String?
+  createdBy        User?          @relation("SecretCreatedBy", fields: [createdById], references: [id])
+  updatedBy        User?          @relation("SecretUpdatedBy", fields: [updatedById], references: [id])
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+}
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  actorUserId String?
+  actorUser   User?    @relation(fields: [actorUserId], references: [id])
+  actorEmail  String?
+  action      String
+  entityType  String
+  entityId    String?
+  ipAddress   String?
+  userAgent   String?
+  metadataJson Json?
+  createdAt   DateTime @default(now())
+}
+
+model ProofpointApiConfig {
+  id                     String   @id @default(cuid())
+  provider               String   @unique @default("proofpoint_api")
+  clientIdEncrypted      String
+  clientSecretEncrypted  String
+  sourceFiltersJson      Json?
+  verdictFiltersJson     Json?
+  cachedTokenEncrypted   String?
+  refreshTokenEncrypted  String?
+  tokenExpiresAt         DateTime?
+  webhookSecretEncrypted String?
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+}
+
+model ApprovalActionLog {
+  id               String   @id @default(cuid())
+  incidentId       String
+  action           String
+  statusCode       Int?
+  ok               Boolean  @default(false)
+  message          String?
+  responseBodyJson Json?
+  actorEmail       String?
+  createdAt        DateTime @default(now())
+}
+
+model ApproverQuarantineScope {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  foldersJson Json @default("[]")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}

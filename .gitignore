@@ -1,0 +1,53 @@
+# dependencies
+node_modules/
+.pnpm-store/
+
+# build outputs
+.next/
+dist/
+coverage/
+.cache/
+turbo/
+
+# local env
+.env
+.env.*
+!.env.example
+
+# logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# temp / misc
+tmp/
+docker-data/
+.DS_Store
+*.tmp
+*.bak
+*.old
+*.orig
+
+# local databases
+apps/api/prisma/dev.db
+apps/api/prisma/dev.db-journal
+
+# secrets / certs / keys
+secrets/
+*.secret
+*.pem
+*.key
+*.crt
+
+# runtime storage
+storage/
+apps/api/storage/
+
+# editor / OS
+.vscode/
+.idea/
+
+# optional
+pnpm-lock.yaml.local

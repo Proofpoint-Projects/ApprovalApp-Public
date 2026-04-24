@@ -1,0 +1,24 @@
+{
+  "name": "@portal/web",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 3000",
+    "build": "next build",
+    "start": "HOSTNAME=0.0.0.0 PORT=3000 node .next/standalone/server.js",
+    "lint": "next lint || true",
+    "format": "prettier --write ."
+  },
+  "dependencies": {
+    "next": "15.3.9",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
+    "sweetalert2": "^11.22.4"
+  }, 
+  "devDependencies": {
+    "@types/node": "^22.14.1",
+    "@types/react": "^19.1.1",
+    "@types/react-dom": "^19.1.2",
+    "typescript": "^5.8.3"
+  }
+}
